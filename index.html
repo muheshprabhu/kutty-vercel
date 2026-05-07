@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KUTTY – Personal Life Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d0d11;--bg2:#14141a;--bg3:#1c1c26;
+  --card:#1e1e2a;--card2:#252535;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#f0f0f5;--text2:#9090a8;--text3:#5a5a72;
+  --accent:#7c6ef5;--accent2:#5b4fd9;
+  --green:#3ecf8e;--amber:#f5a623;--red:#f06060;
+  --pink:#e879a0;--teal:#38c5c5;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+  --r:12px;--r2:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.6;min-height:100vh}
+.app{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:224px;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;z-index:100}
+.sb-logo{padding:24px 20px 18px;border-bottom:1px solid var(--border)}
+.logo-mark{font-family:var(--fh);font-weight:800;font-size:26px;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-top:2px}
+.sb-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);padding:12px 12px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:14px;border:none;background:none;width:100%;text-align:left;transition:all 0.15s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(124,110,245,0.15);color:var(--accent);font-weight:500}
+.nav-icon{font-size:17px;width:22px;text-align:center}
+.sb-footer{padding:14px 16px;border-top:1px solid var(--border)}
+.db-badge{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);margin-bottom:10px}
+.db-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.db-dot.offline{background:var(--amber)}
+
+/* Main */
+.main{margin-left:224px;flex:1;padding:28px 32px;min-height:100vh}
+.pg-header{margin-bottom:26px}
+.pg-title{font-family:var(--fh);font-weight:700;font-size:26px;letter-spacing:-0.5px}
+.pg-sub{color:var(--text2);font-size:14px;margin-top:4px}
+.hdr-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:26px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px}
+.card-title{font-family:var(--fh);font-weight:600;font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.stat-val{font-family:var(--fh);font-size:28px;font-weight:700;line-height:1}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.c-accent{color:var(--accent)}.c-green{color:var(--green)}.c-amber{color:var(--amber)}.c-red{color:var(--red)}.c-pink{color:var(--pink)}.c-teal{color:var(--teal)}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.ga{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.gap4{display:flex;flex-direction:column;gap:16px}
+.mb4{margin-bottom:16px}
+.mb5{margin-bottom:20px}
+
+/* Forms */
+.fg{display:flex;flex-direction:column;gap:6px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.flabel{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.8px}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--fb);font-size:14px;padding:10px 14px;outline:none;transition:border 0.15s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--r);font-family:var(--fb);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+.btn-danger{background:rgba(240,96,96,0.12);color:var(--red);border:1px solid rgba(240,96,96,0.25)}
+.btn-danger:hover{background:rgba(240,96,96,0.22)}
+.btn-green{background:rgba(62,207,142,0.12);color:var(--green);border:1px solid rgba(62,207,142,0.25)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+.bg-green{background:rgba(62,207,142,0.15);color:var(--green)}
+.bg-amber{background:rgba(245,166,35,0.15);color:var(--amber)}
+.bg-red{background:rgba(240,96,96,0.15);color:var(--red)}
+.bg-accent{background:rgba(124,110,245,0.15);color:var(--accent)}
+.bg-pink{background:rgba(232,121,160,0.15);color:var(--pink)}
+.bg-teal{background:rgba(56,197,197,0.15);color:var(--teal)}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+.tbl-wrap{overflow-x:auto}
+
+/* Segment */
+.seg{display:flex;border-radius:var(--r);overflow:hidden;border:1px solid var(--border2)}
+.seg-btn{flex:1;padding:9px 10px;font-size:13px;cursor:pointer;text-align:center;border:none;background:var(--bg3);color:var(--text2);font-family:var(--fb);transition:all 0.15s;border-right:1px solid var(--border2)}
+.seg-btn:last-child{border-right:none}
+.sel-healthy{background:rgba(62,207,142,0.18);color:var(--green)}
+.sel-moderate{background:rgba(245,166,35,0.18);color:var(--amber)}
+.sel-unhealthy{background:rgba(240,96,96,0.18);color:var(--red)}
+
+/* Progress */
+.pbar{height:8px;background:var(--bg3);border-radius:100px;overflow:hidden}
+.pfill{height:100%;border-radius:100px;transition:width 0.4s}
+
+/* Month nav */
+.mnav{display:flex;align-items:center;gap:12px}
+.mnav-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;transition:all 0.15s}
+.mnav-btn:hover{color:var(--text);border-color:var(--accent)}
+.mlabel{font-family:var(--fh);font-size:16px;font-weight:600;min-width:150px;text-align:center}
+
+/* Grade */
+.grade-circle{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:28px;border:3px solid}
+.gA{border-color:var(--green);color:var(--green);background:rgba(62,207,142,0.1)}
+.gB{border-color:var(--teal);color:var(--teal);background:rgba(56,197,197,0.1)}
+.gC{border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,0.1)}
+.gD{border-color:var(--red);color:var(--red);background:rgba(240,96,96,0.1)}
+
+/* Routine */
+.rt-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.rt-item:last-child{border-bottom:none}
+.rt-icon{width:36px;height:36px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-right:10px}
+.rt-name{font-size:14px}
+.rt-hint{font-size:12px;color:var(--text3)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:var(--r);padding:12px 18px;font-size:13px;z-index:9999;animation:slideUp 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
+.toast-err{border-left-color:var(--red)}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Loading spinner */
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* Empty */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.5}
+
+/* Insights bar */
+.insight-bar{background:rgba(124,110,245,0.06);border:1px solid rgba(124,110,245,0.2);border-left:3px solid var(--accent);border-radius:var(--r2);padding:16px 20px;margin-bottom:20px}
+.info-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:8px}
+.info-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+
+/* Accent bar under input */
+.abar{height:3px;border-radius:100px;margin-top:6px}
+
+/* Color dots */
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* Scroll */
+.scroll-y{max-height:360px;overflow-y:auto}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* Chart wrapper */
+.ch-wrap{position:relative;width:100%}
+
+/* Legend row */
+.leg-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .main{margin-left:0;padding:16px;max-width:100vw}
+  .g2,.g3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+// ─── API Layer ────────────────────────────────────────────────────────────────
+const API = {
+  base: 'https://kutty-backend.onrender.com',   // render backend
+  async get(path){ const r=await fetch(this.base+path); return r.json(); },
+  async post(path,body){ const r=await fetch(this.base+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json(); },
+  async put(path,body){ const r=await fetch(this.base+path,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json(); },
+  async del(path){ const r=await fetch(this.base+path,{method:'DELETE'}); return r.json(); },
+  download(path){ window.open(this.base+path,'_blank'); }
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const today=()=>new Date().toISOString().split('T')[0];
+const fmtDate=d=>new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const fmtCur=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const CAT_COLORS={food:'#3ecf8e',travel:'#7c6ef5',shopping:'#e879a0',others:'#f5a623'};
+const FOOD_COLORS={healthy:'#3ecf8e',moderate:'#f5a623',unhealthy:'#f06060'};
+
+// ─── Chart Components ─────────────────────────────────────────────────────────
+function BarChart({data,labels,colors,height=220}){
+  const ref=useRef(null),ch=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    if(ch.current)ch.current.destroy();
+    ch.current=new Chart(ref.current,{
+      type:'bar',
+      data:{labels,datasets:[{data,backgroundColor:colors||data.map(()=>'rgba(124,110,245,0.7)'),borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+Number(c.raw).toLocaleString('en-IN')}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',font:{size:11}}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',font:{size:11},callback:v=>'₹'+(v>=1000?(v/1000).toFixed(0)+'k':v)}}}}
+    });
+    return()=>{if(ch.current)ch.current.destroy()};
+  },[JSON.stringify(data),JSON.stringify(labels)]);
+  return <div style={{position:'relative',height}}><canvas ref={ref} role="img" aria-label="Bar chart"/></div>;
+}
+
+function DonutChart({data,labels,colors,height=180}){
+  const ref=useRef(null),ch=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    if(ch.current)ch.current.destroy();
+    ch.current=new Chart(ref.current,{
+      type:'doughnut',
+      data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+c.raw}}}}
+    });
+    return()=>{if(ch.current)ch.current.destroy()};
+  },[JSON.stringify(data)]);
+  return <div style={{position:'relative',height}}><canvas ref={ref} role="img" aria-label="Donut chart"/></div>;
+}
+
+function LineChart({datasets,labels,height=200}){
+  const ref=useRef(null),ch=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    if(ch.current)ch.current.destroy();
+    ch.current=new Chart(ref.current,{
+      type:'line',
+      data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',font:{size:10},maxTicksLimit:10}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',font:{size:10}}}}}
+    });
+    return()=>{if(ch.current)ch.current.destroy()};
+  },[JSON.stringify(datasets)]);
+  return <div style={{position:'relative',height}}><canvas ref={ref} role="img" aria-label="Line chart"/></div>;
+}
+
+// ─── Grade Card ───────────────────────────────────────────────────────────────
+function GradeCard({grade,title}){
+  if(!grade)return null;
+  const cls='g'+(grade.grade||'A');
+  return(
+    <div style={{display:'flex',alignItems:'center',gap:16}}>
+      <div className={`grade-circle ${cls}`}>{grade.grade}</div>
+      <div>
+        <div style={{fontFamily:'Syne',fontWeight:600,fontSize:16}}>{grade.label}</div>
+        <div style={{color:'var(--text2)',fontSize:13,marginTop:2}}>{grade.desc}</div>
+        <div style={{color:'var(--text3)',fontSize:12,marginTop:2}}>{title}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function Toast({msg,err,onHide}){
+  useEffect(()=>{const t=setTimeout(onHide,3000);return()=>clearTimeout(t)},[]);
+  return <div className={`toast ${err?'toast-err':''}`}>{err?'❌':'✅'} {msg}</div>;
+}
+
+// ─── Spinner ──────────────────────────────────────────────────────────────────
+function Spinner(){return <div className="spinner"/>}
+
+// ─── DB Status Badge ─────────────────────────────────────────────────────────
+function DBStatus({status}){
+  if(!status)return null;
+  const connected=status.db_connected;
+  return(
+    <div className="db-badge">
+      <div className={`db-dot ${connected?'':'offline'}`}/>
+      <span>{connected?'MongoDB':'In-Memory'}</span>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function Dashboard({onNav}){
+  const now=new Date();
+  const [analytics,setAnalytics]=useState(null);
+  const [weekly,setWeekly]=useState(null);
+  const [recent,setRecent]=useState([]);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    Promise.all([
+      API.get(`/api/analytics?year=${now.getFullYear()}&month=${now.getMonth()+1}`),
+      API.get('/api/insights/weekly'),
+      API.get('/api/entries')
+    ]).then(([a,w,e])=>{
+      if(a.success)setAnalytics(a.data);
+      if(w.success)setWeekly(w.data);
+      if(e.success)setRecent(e.data.slice(0,6));
+    }).finally(()=>setLoading(false));
+  },[]);
+
+  if(loading)return <Spinner/>;
+  if(!analytics)return <div className="empty"><div className="empty-icon">📡</div><div>Failed to load data. Check server.</div></div>;
+
+  const a=analytics;
+  const bc=a.by_category||{};
+  const fc=a.food_counts||{};
+  const ra=a.routine_averages||{};
+  const dt=a.daily_totals||[];
+
+  const dayLabels=dt.map(d=>String(d.day));
+  const dayTotals=dt.map(d=>d.total);
+
+  return(
+    <div>
+      <div className="pg-header">
+        <div className="pg-title">Dashboard</div>
+        <div className="pg-sub">{MONTHS[now.getMonth()]} {now.getFullYear()} · {a.entry_count} entries logged</div>
+      </div>
+
+      {/* Weekly Insights */}
+      {weekly&&weekly.days_logged>0&&(
+        <div className="insight-bar mb5">
+          <div style={{fontFamily:'Syne',fontWeight:600,fontSize:14}}>💡 Weekly Insights</div>
+          <div className="info-row">
+            <div className="info-item">📅 <strong style={{color:'var(--text)'}}>{weekly.days_logged}</strong> days logged</div>
+            <div className="info-item">💸 Spent: <strong style={{color:'var(--accent)'}}>{fmtCur(weekly.total_spend)}</strong></div>
+            <div className="info-item">📊 Daily avg: <strong style={{color:'var(--teal)'}}>{fmtCur(weekly.daily_avg)}</strong></div>
+            <div className="info-item">🥦 <strong style={{color:'var(--green)'}}>{weekly.healthy_days}</strong> healthy days</div>
+            <div className="info-item">😴 Avg sleep: <strong style={{color:'var(--pink)'}}>{weekly.avg_sleep}h</strong></div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="stats-row">
+        <div className="stat-card"><div className="stat-label">Monthly Spend</div><div className="stat-val c-accent">{fmtCur(a.total_expense)}</div><div className="stat-sub">{a.entry_count} days</div></div>
+        <div className="stat-card"><div className="stat-label">Avg / Day</div><div className="stat-val c-teal">{a.entry_count?fmtCur(Math.round(a.total_expense/a.entry_count)):'₹0'}</div><div className="stat-sub">daily average</div></div>
+        <div className="stat-card"><div className="stat-label">Healthy Days</div><div className="stat-val c-green">{fc.healthy||0}</div><div className="stat-sub">of {a.entry_count}</div></div>
+        <div className="stat-card"><div className="stat-label">Health Score</div><div className="stat-val c-pink">{a.health_score||0}%</div><div className="stat-sub">food rating</div></div>
+        <div className="stat-card"><div className="stat-label">Avg Sleep</div><div className="stat-val c-accent">{ra.sleep_hours||'–'}<span style={{fontSize:14}}>h</span></div><div className="stat-sub">per night</div></div>
+      </div>
+
+      {/* Charts row 1 */}
+      <div className="g2 mb5">
+        <div className="card">
+          <div className="card-title">📈 Daily Spending – {MSHORT[now.getMonth()]}</div>
+          <BarChart data={dayTotals} labels={dayLabels} height={200}/>
+        </div>
+        <div className="card">
+          <div className="card-title">🍩 Category Split</div>
+          {a.total_expense>0?(
+            <>
+              <DonutChart data={[bc.food,bc.travel,bc.shopping,bc.others]} labels={['Food','Travel','Shopping','Others']} colors={Object.values(CAT_COLORS)} height={160}/>
+              <div className="leg-row">
+                {Object.entries(bc).map(([k,v])=>(
+                  <div key={k} className="leg-item"><span className="dot" style={{background:CAT_COLORS[k]}}/>{k.charAt(0).toUpperCase()+k.slice(1)}: <strong style={{color:'var(--text)'}}>{fmtCur(v)}</strong></div>
+                ))}
+              </div>
+            </>
+          ):<div className="empty"><div className="empty-icon">💸</div><div>No expenses this month</div></div>}
+        </div>
+      </div>
+
+      {/* Charts row 2 */}
+      <div className="g2 mb5">
+        <div className="card">
+          <div className="card-title">🥗 Food Habits</div>
+          {a.entry_count>0?(
+            <>
+              <DonutChart data={[fc.healthy||0,fc.moderate||0,fc.unhealthy||0]} labels={['Healthy','Moderate','Unhealthy']} colors={Object.values(FOOD_COLORS)} height={160}/>
+              <div className="leg-row">
+                {Object.entries(fc).map(([k,v])=>(
+                  <div key={k} className="leg-item"><span className="dot" style={{background:FOOD_COLORS[k]}}/>{k.charAt(0).toUpperCase()+k.slice(1)}: <strong style={{color:'var(--text)'}}>{v}</strong></div>
+                ))}
+              </div>
+            </>
+          ):<div className="empty"><div className="empty-icon">🍽️</div><div>No data</div></div>}
+        </div>
+        <div className="card">
+          <div className="card-title">⭐ Report Card</div>
+          <div style={{display:'flex',flexDirection:'column',gap:20,marginTop:4}}>
+            <GradeCard grade={a.grades?.expense} title="Expense Grade"/>
+            <div className="divider"/>
+            <GradeCard grade={a.grades?.food} title="Food Grade"/>
+            <div className="divider"/>
+            <GradeCard grade={a.grades?.routine} title="Routine Grade"/>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent entries */}
+      <div className="card">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+          <div className="card-title" style={{marginBottom:0}}>🕐 Recent Entries</div>
+          <button className="btn btn-ghost btn-sm" onClick={()=>onNav('history')}>View all →</button>
+        </div>
+        {recent.length>0?(
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead><tr><th>Date</th><th>Food</th><th>Travel</th><th>Shopping</th><th>Others</th><th>Total</th><th>Food Type</th><th>Sleep</th></tr></thead>
+              <tbody>{recent.map(e=>{
+                const tot=Object.values(e.expense||{}).reduce((a,b)=>a+Number(b||0),0);
+                return <tr key={e._id}>
+                  <td style={{fontWeight:500}}>{fmtDate(e.date)}</td>
+                  <td style={{color:CAT_COLORS.food}}>{e.expense?.food?fmtCur(e.expense.food):'–'}</td>
+                  <td style={{color:CAT_COLORS.travel}}>{e.expense?.travel?fmtCur(e.expense.travel):'–'}</td>
+                  <td style={{color:CAT_COLORS.shopping}}>{e.expense?.shopping?fmtCur(e.expense.shopping):'–'}</td>
+                  <td style={{color:CAT_COLORS.others}}>{e.expense?.others?fmtCur(e.expense.others):'–'}</td>
+                  <td><strong style={{color:'var(--accent)'}}>{fmtCur(tot)}</strong></td>
+                  <td><span className={`badge ${e.food_type==='healthy'?'bg-green':e.food_type==='moderate'?'bg-amber':'bg-red'}`}>{e.food_type||'–'}</span></td>
+                  <td style={{color:'var(--pink)'}}>{e.routine?.sleep_hours?e.routine.sleep_hours+'h':'–'}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        ):<div className="empty"><div className="empty-icon">📋</div><div>No entries yet.<br/>Click "Log Entry" to add your first!</div></div>}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LOG ENTRY PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function LogEntry({onToast}){
+  const [saving,setSaving]=useState(false);
+  const [checking,setChecking]=useState(false);
+  const [existing,setExisting]=useState(null);
+  const [form,setForm]=useState({
+    date:today(),
+    expense:{food:'',travel:'',shopping:'',others:''},
+    food_type:'healthy',
+    routine:{wake_up_time:'06:00',ready_time:'30',work_hours:'8',eating_time:'45',room_work:'30',phone_usage:'2',sleep_hours:'7'}
+  });
+
+  // Load existing entry when date changes
+  useEffect(()=>{
+    if(!form.date)return;
+    setChecking(true);
+    API.get(`/api/entries/date/${form.date}`).then(r=>{
+      if(r.success&&r.data){
+        const e=r.data;
+        setExisting(e);
+        setForm(prev=>({...prev,
+          expense:{food:e.expense?.food||'',travel:e.expense?.travel||'',shopping:e.expense?.shopping||'',others:e.expense?.others||''},
+          food_type:e.food_type||'healthy',
+          routine:{wake_up_time:e.routine?.wake_up_time||'06:00',ready_time:e.routine?.ready_time||'',work_hours:e.routine?.work_hours||'',eating_time:e.routine?.eating_time||'',room_work:e.routine?.room_work||'',phone_usage:e.routine?.phone_usage||'',sleep_hours:e.routine?.sleep_hours||''}
+        }));
+      } else {
+        setExisting(null);
+      }
+    }).finally(()=>setChecking(false));
+  },[form.date]);
+
+  const set=(path,val)=>setForm(prev=>{
+    const next={...prev};
+    const p=path.split('.');
+    if(p.length===1)next[path]=val;
+    else next[p[0]]={...next[p[0]],[p[1]]:val};
+    return next;
+  });
+
+  const totalExp=['food','travel','shopping','others'].reduce((s,k)=>s+Number(form.expense[k]||0),0);
+
+  const handleSave=async()=>{
+    setSaving(true);
+    try{
+      const res=await API.post('/api/entries',form);
+      if(res.success){onToast(existing?'Entry updated!':'Entry saved!',false);}
+      else{onToast(res.error||'Save failed',true);}
+    }catch(e){onToast('Network error',true);}
+    setSaving(false);
+  };
+
+  const routineFields=[
+    {key:'wake_up_time',label:'Wake-up Time',icon:'🌅',type:'time',hint:'time'},
+    {key:'ready_time',label:'Getting Ready',icon:'🚿',type:'number',hint:'minutes'},
+    {key:'work_hours',label:'Work / Study',icon:'💻',type:'number',hint:'hours'},
+    {key:'eating_time',label:'Eating Time',icon:'🍽️',type:'number',hint:'minutes'},
+    {key:'room_work',label:'House / Room Work',icon:'🧹',type:'number',hint:'minutes'},
+    {key:'phone_usage',label:'Phone Usage',icon:'📱',type:'number',hint:'hours'},
+    {key:'sleep_hours',label:'Sleep Duration',icon:'😴',type:'number',hint:'hours'},
+  ];
+
+  return(
+    <div>
+      <div className="pg-header">
+        <div className="pg-title">Log Daily Entry</div>
+        <div className="pg-sub">{checking?'Checking…':existing?'✏️ Updating existing entry':'+ New entry'}</div>
+      </div>
+      <div className="gap4">
+
+        {/* Date */}
+        <div className="card">
+          <div className="card-title">📅 Date</div>
+          <div style={{maxWidth:220}}><input type="date" value={form.date} max={today()} onChange={e=>set('date',e.target.value)}/></div>
+        </div>
+
+        {/* Expenses */}
+        <div className="card">
+          <div className="card-title">💰 Expenses (₹)</div>
+          <div className="fgrid">
+            {[['food','🥗 Food',CAT_COLORS.food],['travel','🚌 Travel',CAT_COLORS.travel],['shopping','🛍️ Shopping',CAT_COLORS.shopping],['others','📦 Others',CAT_COLORS.others]].map(([k,lbl,col])=>(
+              <div className="fg" key={k}>
+                <label className="flabel">{lbl}</label>
+                <input type="number" min="0" placeholder="0" value={form.expense[k]} onChange={e=>set('expense.'+k,e.target.value)}/>
+                <div className="abar" style={{background:col}}/>
+              </div>
+            ))}
+          </div>
+          <div style={{marginTop:14,padding:'12px 16px',background:'var(--bg3)',borderRadius:'var(--r)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{color:'var(--text2)',fontSize:13}}>Total</span>
+            <span style={{fontFamily:'Syne',fontWeight:700,fontSize:22,color:'var(--accent)'}}>{fmtCur(totalExp)}</span>
+          </div>
+        </div>
+
+        {/* Food */}
+        <div className="card">
+          <div className="card-title">🍽️ Food Habit Today</div>
+          <div className="seg">
+            {[['healthy','🥦 Healthy'],['moderate','🍜 Moderate'],['unhealthy','🍔 Unhealthy']].map(([v,l])=>(
+              <button key={v} className={`seg-btn ${form.food_type===v?'sel-'+v:''}`} onClick={()=>set('food_type',v)}>{l}</button>
+            ))}
+          </div>
+          <div style={{marginTop:10,fontSize:13,color:'var(--text2)'}}>
+            {form.food_type==='healthy'&&'✅ Great! Healthy eating tracked.'}
+            {form.food_type==='moderate'&&'⚖️ Balanced. Try to add more vegetables.'}
+            {form.food_type==='unhealthy'&&'⚠️ Noted. Try to eat healthier tomorrow!'}
+          </div>
+        </div>
+
+        {/* Routine */}
+        <div className="card">
+          <div className="card-title">⏰ Daily Routine</div>
+          {routineFields.map(f=>(
+            <div className="rt-item" key={f.key}>
+              <div style={{display:'flex',alignItems:'center'}}>
+                <div className="rt-icon">{f.icon}</div>
+                <div><div className="rt-name">{f.label}</div><div className="rt-hint">in {f.hint}</div></div>
+              </div>
+              <div style={{width:130}}>
+                {f.type==='time'
+                  ?<input type="time" value={form.routine[f.key]} onChange={e=>set('routine.'+f.key,e.target.value)}/>
+                  :<input type="number" min="0" value={form.routine[f.key]} onChange={e=>set('routine.'+f.key,e.target.value)}/>
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving?'Saving…':'💾 '+(existing?'Update Entry':'Save Entry')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ANALYTICS PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function Analytics(){
+  const now=new Date();
+  const [vm,setVm]=useState(now.getMonth());
+  const [vy,setVy]=useState(now.getFullYear());
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    setLoading(true);
+    API.get(`/api/analytics?year=${vy}&month=${vm+1}`).then(r=>{
+      if(r.success)setData(r.data);
+    }).finally(()=>setLoading(false));
+  },[vm,vy]);
+
+  const prevMo=()=>{if(vm===0){setVm(11);setVy(y=>y-1);}else setVm(m=>m-1);};
+  const nextMo=()=>{
+    const nm=vm===11?0:vm+1,ny=vm===11?vy+1:vy;
+    if(ny>now.getFullYear()||(ny===now.getFullYear()&&nm>now.getMonth()))return;
+    setVm(nm);if(vm===11)setVy(y=>y+1);
+  };
+
+  const exportCSV=()=>API.download(`/api/export/csv?year=${vy}&month=${vm+1}`);
+
+  if(loading)return <Spinner/>;
+  if(!data)return <div className="empty"><div className="empty-icon">📡</div><div>Failed to load</div></div>;
+
+  const bc=data.by_category||{};
+  const fc=data.food_counts||{};
+  const ra=data.routine_averages||{};
+  const dt=data.daily_totals||[];
+  const dayLabels=dt.map(d=>String(d.day));
+  const dayTotals=dt.map(d=>d.total);
+
+  return(
+    <div>
+      <div className="hdr-row">
+        <div><div className="pg-title">Analytics</div><div className="pg-sub">Monthly breakdown & report card</div></div>
+        <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+          <div className="mnav">
+            <div className="mnav-btn" onClick={prevMo}>‹</div>
+            <div className="mlabel">{MONTHS[vm]} {vy}</div>
+            <div className="mnav-btn" onClick={nextMo}>›</div>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={exportCSV}>⬇️ CSV</button>
+        </div>
+      </div>
+
+      <div className="stats-row">
+        <div className="stat-card"><div className="stat-label">Total Expense</div><div className="stat-val c-accent">{fmtCur(data.total_expense)}</div><div className="stat-sub">{data.entry_count} days</div></div>
+        <div className="stat-card"><div className="stat-label">Top Category</div>
+          <div className="stat-val" style={{fontSize:20,paddingTop:6,color:CAT_COLORS[Object.keys(bc).reduce((a,b)=>bc[a]>bc[b]?a:b,'food')]||'var(--accent)'}}>
+            {data.total_expense>0?Object.keys(bc).reduce((a,b)=>bc[a]>bc[b]?a:b,'food').toUpperCase():'–'}
+          </div>
+          <div className="stat-sub">highest spend</div>
+        </div>
+        <div className="stat-card"><div className="stat-label">Health Score</div><div className="stat-val c-green">{data.health_score}%</div><div className="stat-sub">{fc.healthy||0} healthy days</div></div>
+        <div className="stat-card"><div className="stat-label">Avg Sleep</div><div className="stat-val c-pink">{ra.sleep_hours||'–'}<span style={{fontSize:14}}>h</span></div><div className="stat-sub">per night</div></div>
+        <div className="stat-card"><div className="stat-label">Avg Phone</div><div className="stat-val" style={{color:Number(ra.phone_usage)>4?'var(--red)':'var(--amber)'}}>{ra.phone_usage||'–'}<span style={{fontSize:14}}>h</span></div><div className="stat-sub">screen time</div></div>
+      </div>
+
+      <div className="g2 mb5">
+        <div className="card">
+          <div className="card-title">📊 Daily Expenses</div>
+          <BarChart data={dayTotals} labels={dayLabels} height={200}/>
+        </div>
+        <div className="card">
+          <div className="card-title">🍩 Category Split</div>
+          {data.total_expense>0?(
+            <>
+              <DonutChart data={[bc.food,bc.travel,bc.shopping,bc.others]} labels={['Food','Travel','Shopping','Others']} colors={Object.values(CAT_COLORS)} height={150}/>
+              <div className="leg-row">
+                {Object.entries(bc).map(([k,v])=>(
+                  <div key={k} className="leg-item"><span className="dot" style={{background:CAT_COLORS[k]}}/>{k.charAt(0).toUpperCase()+k.slice(1)}: <strong style={{color:'var(--text)'}}>{fmtCur(v)}</strong></div>
+                ))}
+              </div>
+            </>
+          ):<div className="empty"><div className="empty-icon">💸</div><div>No expense data</div></div>}
+        </div>
+      </div>
+
+      <div className="g2 mb5">
+        <div className="card">
+          <div className="card-title">🥗 Food Habits</div>
+          <DonutChart data={[fc.healthy||0,fc.moderate||0,fc.unhealthy||0]} labels={['Healthy','Moderate','Unhealthy']} colors={Object.values(FOOD_COLORS)} height={150}/>
+          <div className="leg-row">
+            {Object.entries(fc).map(([k,v])=>(
+              <div key={k} className="leg-item"><span className="dot" style={{background:FOOD_COLORS[k]}}/>{k.charAt(0).toUpperCase()+k.slice(1)}: <strong style={{color:'var(--text)'}}>{v} days</strong></div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title">⏱️ Routine Averages</div>
+          <BarChart
+            data={[Number(ra.work_hours)||0,Number(ra.sleep_hours)||0,Number(ra.phone_usage)||0]}
+            labels={['Work (h)','Sleep (h)','Phone (h)']}
+            colors={['#7c6ef5','#e879a0','#f06060']}
+            height={140}
+          />
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:14}}>
+            {[['Ready',ra.ready_time,'min'],['Eating',ra.eating_time,'min'],['House Work',ra.room_work,'min'],['Work',ra.work_hours,'h']].map(([l,v,u])=>(
+              <div key={l} style={{background:'var(--bg3)',borderRadius:'var(--r)',padding:'10px 12px'}}>
+                <div style={{fontSize:11,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.8px'}}>{l}</div>
+                <div style={{fontFamily:'Syne',fontSize:18,fontWeight:600,color:'var(--text)',marginTop:2}}>{v||'–'}<span style={{fontSize:12,color:'var(--text2)',marginLeft:2}}>{u}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Report Card */}
+      <div className="card">
+        <div className="card-title">🏅 Monthly Report Card</div>
+        <div className="g3" style={{marginTop:8}}>
+          {[['Expense',data.grades?.expense],['Food Habits',data.grades?.food],['Routine',data.grades?.routine]].map(([t,g])=>(
+            <div key={t} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12,padding:'20px 0',borderRight:'1px solid var(--border)'}}>
+              <div className={`grade-circle g${g?.grade||'A'}`}>{g?.grade||'–'}</div>
+              <div style={{textAlign:'center'}}>
+                <div style={{fontFamily:'Syne',fontWeight:600,fontSize:15}}>{t}</div>
+                <div style={{color:'var(--text2)',fontSize:13}}>{g?.label}</div>
+                <div style={{color:'var(--text3)',fontSize:12,marginTop:4}}>{g?.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HISTORY PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function History({onToast}){
+  const [entries,setEntries]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [filter,setFilter]=useState('all');
+  const [deleting,setDeleting]=useState(null);
+
+  const load=()=>{
+    setLoading(true);
+    API.get('/api/entries').then(r=>{if(r.success)setEntries(r.data);}).finally(()=>setLoading(false));
+  };
+  useEffect(()=>load(),[]);
+
+  const handleDelete=async(id)=>{
+    if(!window.confirm('Delete this entry?'))return;
+    setDeleting(id);
+    const r=await API.del(`/api/entries/${id}`);
+    if(r.success){onToast('Entry deleted',false);load();}
+    else onToast(r.error||'Delete failed',true);
+    setDeleting(null);
+  };
+
+  const filtered=filter==='all'?entries:entries.filter(e=>Number(e.expense?.[filter]||0)>0);
+  const exportAll=()=>API.download('/api/export/csv');
+
+  if(loading)return <Spinner/>;
+
+  return(
+    <div>
+      <div className="hdr-row">
+        <div><div className="pg-title">History</div><div className="pg-sub">{entries.length} total entries in MongoDB</div></div>
+        <button className="btn btn-ghost btn-sm" onClick={exportAll}>⬇️ Export All CSV</button>
+      </div>
+      <div className="card">
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+          <span style={{fontSize:13,color:'var(--text2)'}}>Filter by category:</span>
+          {[['all','🗓️ All'],['food','🥗 Food'],['travel','🚌 Travel'],['shopping','🛍️ Shopping'],['others','📦 Others']].map(([k,l])=>(
+            <button key={k} className={`btn btn-sm ${filter===k?'btn-primary':'btn-ghost'}`} onClick={()=>setFilter(k)}>{l}</button>
+          ))}
+        </div>
+        {filtered.length>0?(
+          <div className="tbl-wrap scroll-y">
+            <table className="tbl">
+              <thead><tr><th>Date</th><th>Food</th><th>Travel</th><th>Shopping</th><th>Others</th><th>Total</th><th>Food Type</th><th>Sleep</th><th>Work</th><th>Phone</th><th></th></tr></thead>
+              <tbody>{filtered.map(e=>{
+                const tot=Object.values(e.expense||{}).reduce((a,b)=>a+Number(b||0),0);
+                return <tr key={e._id}>
+                  <td style={{fontWeight:500,whiteSpace:'nowrap'}}>{fmtDate(e.date)}</td>
+                  <td style={{color:CAT_COLORS.food}}>{e.expense?.food?fmtCur(e.expense.food):'–'}</td>
+                  <td style={{color:CAT_COLORS.travel}}>{e.expense?.travel?fmtCur(e.expense.travel):'–'}</td>
+                  <td style={{color:CAT_COLORS.shopping}}>{e.expense?.shopping?fmtCur(e.expense.shopping):'–'}</td>
+                  <td style={{color:CAT_COLORS.others}}>{e.expense?.others?fmtCur(e.expense.others):'–'}</td>
+                  <td><strong style={{color:'var(--accent)'}}>{fmtCur(tot)}</strong></td>
+                  <td><span className={`badge ${e.food_type==='healthy'?'bg-green':e.food_type==='moderate'?'bg-amber':'bg-red'}`}>{e.food_type||'–'}</span></td>
+                  <td style={{color:'var(--pink)'}}>{e.routine?.sleep_hours?e.routine.sleep_hours+'h':'–'}</td>
+                  <td style={{color:'var(--accent)'}}>{e.routine?.work_hours?e.routine.work_hours+'h':'–'}</td>
+                  <td style={{color:'var(--red)'}}>{e.routine?.phone_usage?e.routine.phone_usage+'h':'–'}</td>
+                  <td><button className="btn btn-danger btn-sm" disabled={deleting===e._id} onClick={()=>handleDelete(e._id)}>{deleting===e._id?'…':'✕'}</button></td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        ):<div className="empty"><div className="empty-icon">📭</div><div>No entries found</div></div>}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FOOD TRACKER PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function FoodTracker(){
+  const now=new Date();
+  const [data,setData]=useState(null);
+  const [entries,setEntries]=useState([]);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    Promise.all([
+      API.get(`/api/analytics?year=${now.getFullYear()}&month=${now.getMonth()+1}`),
+      API.get('/api/entries')
+    ]).then(([a,e])=>{
+      if(a.success)setData(a.data);
+      if(e.success)setEntries(e.data);
+    }).finally(()=>setLoading(false));
+  },[]);
+
+  if(loading)return <Spinner/>;
+  if(!data)return <div className="empty"><div className="empty-icon">📡</div><div>Failed to load</div></div>;
+
+  const fc=data.food_counts||{};
+  const healthRatio=data.health_score||0;
+  const grade=data.grades?.food;
+
+  return(
+    <div>
+      <div className="pg-header"><div className="pg-title">Food Tracker</div><div className="pg-sub">This month's food habit analysis</div></div>
+
+      <div className="stats-row">
+        <div className="stat-card"><div className="stat-label">Healthy Days</div><div className="stat-val c-green">{fc.healthy||0}</div></div>
+        <div className="stat-card"><div className="stat-label">Moderate Days</div><div className="stat-val c-amber">{fc.moderate||0}</div></div>
+        <div className="stat-card"><div className="stat-label">Unhealthy Days</div><div className="stat-val c-red">{fc.unhealthy||0}</div></div>
+        <div className="stat-card"><div className="stat-label">Health Score</div><div className="stat-val c-accent">{healthRatio}%</div></div>
+      </div>
+
+      <div className="g2 mb5">
+        <div className="card">
+          <div className="card-title">📊 This Month's Distribution</div>
+          <DonutChart data={[fc.healthy||0,fc.moderate||0,fc.unhealthy||0]} labels={['Healthy','Moderate','Unhealthy']} colors={Object.values(FOOD_COLORS)} height={200}/>
+          <div className="leg-row">
+            {Object.entries(fc).map(([k,v])=>(
+              <div key={k} className="leg-item"><span className="dot" style={{background:FOOD_COLORS[k]}}/>{k.charAt(0).toUpperCase()+k.slice(1)}: <strong style={{color:'var(--text)'}}>{v}</strong></div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title">📈 Health Rating</div>
+          <div style={{display:'flex',flexDirection:'column',gap:20,marginTop:4}}>
+            <GradeCard grade={grade} title="Monthly Food Grade"/>
+            <div className="divider"/>
+            <div>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:8,fontSize:13}}>
+                <span style={{color:'var(--text2)'}}>Health ratio</span>
+                <span style={{color:'var(--green)',fontWeight:600}}>{healthRatio}%</span>
+              </div>
+              <div className="pbar"><div className="pfill" style={{width:healthRatio+'%',background:healthRatio>=70?'var(--green)':healthRatio>=50?'var(--amber)':'var(--red)'}}/></div>
+            </div>
+            <div style={{fontSize:13,color:'var(--text2)',lineHeight:2.2}}>
+              <div>🥦 Healthy: <strong style={{color:'var(--green)'}}>{fc.healthy||0} days</strong></div>
+              <div>🍜 Moderate: <strong style={{color:'var(--amber)'}}>{fc.moderate||0} days</strong></div>
+              <div>🍔 Unhealthy: <strong style={{color:'var(--red)'}}>{fc.unhealthy||0} days</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">📅 Food Log History</div>
+        <div className="tbl-wrap scroll-y">
+          <table className="tbl">
+            <thead><tr><th>Date</th><th>Food Type</th><th>Food Expense</th><th>Total Expense</th></tr></thead>
+            <tbody>{entries.map(e=>(
+              <tr key={e._id}>
+                <td>{fmtDate(e.date)}</td>
+                <td><span className={`badge ${e.food_type==='healthy'?'bg-green':e.food_type==='moderate'?'bg-amber':'bg-red'}`}>{e.food_type||'–'}</span></td>
+                <td style={{color:CAT_COLORS.food}}>{e.expense?.food?fmtCur(e.expense.food):'–'}</td>
+                <td style={{color:'var(--accent)'}}>{fmtCur(Object.values(e.expense||{}).reduce((a,b)=>a+Number(b||0),0))}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTINE PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function RoutinePage(){
+  const now=new Date();
+  const [data,setData]=useState(null);
+  const [entries,setEntries]=useState([]);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    Promise.all([
+      API.get(`/api/analytics?year=${now.getFullYear()}&month=${now.getMonth()+1}`),
+      API.get('/api/entries')
+    ]).then(([a,e])=>{
+      if(a.success)setData(a.data);
+      if(e.success)setEntries(e.data);
+    }).finally(()=>setLoading(false));
+  },[]);
+
+  if(loading)return <Spinner/>;
+  if(!data)return <div className="empty"><div className="empty-icon">📡</div><div>Failed to load</div></div>;
+
+  const ra=data.routine_averages||{};
+  const grade=data.grades?.routine;
+
+  // Build last 14 days datasets
+  const labels=[];
+  const sleepD=[],workD=[],phoneD=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    const ds=d.toISOString().split('T')[0];
+    const e=entries.find(x=>x.date===ds);
+    labels.push(d.getDate()+'');
+    sleepD.push(e?.routine?.sleep_hours||0);
+    workD.push(e?.routine?.work_hours||0);
+    phoneD.push(e?.routine?.phone_usage||0);
+  }
+
+  const datasets=[
+    {label:'Sleep (h)',data:sleepD,borderColor:'#e879a0',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:3},
+    {label:'Work (h)',data:workD,borderColor:'#7c6ef5',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:3},
+    {label:'Phone (h)',data:phoneD,borderColor:'#f06060',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:3},
+  ];
+
+  const metrics=[
+    {key:'sleep_hours',label:'Avg Sleep',icon:'😴',unit:'h',ideal:'7-9h',color:'var(--pink)'},
+    {key:'work_hours',label:'Avg Work',icon:'💻',unit:'h',ideal:'6-8h',color:'var(--accent)'},
+    {key:'phone_usage',label:'Avg Phone',icon:'📱',unit:'h',ideal:'<3h',color:'var(--red)'},
+    {key:'ready_time',label:'Ready Time',icon:'🚿',unit:'min',ideal:'20-45',color:'var(--teal)'},
+    {key:'eating_time',label:'Eating',icon:'🍽️',unit:'min',ideal:'30-60',color:'var(--green)'},
+    {key:'room_work',label:'House Work',icon:'🧹',unit:'min',ideal:'20-60',color:'var(--amber)'},
+  ];
+
+  return(
+    <div>
+      <div className="pg-header"><div className="pg-title">Daily Routine</div><div className="pg-sub">Monthly routine analytics</div></div>
+
+      <div className="stats-row">
+        {metrics.map(m=>(
+          <div className="stat-card" key={m.key}>
+            <div className="stat-label">{m.icon} {m.label}</div>
+            <div className="stat-val" style={{color:m.color}}>{ra[m.key]||'–'}<span style={{fontSize:13}}>{m.unit}</span></div>
+            <div className="stat-sub">ideal: {m.ideal}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="g2 mb5">
+        <div className="card">
+          <div className="card-title">🏅 Routine Grade</div>
+          <GradeCard grade={grade} title="Routine Performance"/>
+          <div className="divider"/>
+          <div style={{fontSize:13,color:'var(--text2)',lineHeight:2.2}}>
+            <div>💤 Avg Sleep: <strong style={{color:'var(--pink)'}}>{ra.sleep_hours||'–'}h</strong> <span style={{fontSize:11,color:'var(--text3)'}}>/ ideal 7-9h</span></div>
+            <div>💻 Avg Work: <strong style={{color:'var(--accent)'}}>{ra.work_hours||'–'}h</strong> <span style={{fontSize:11,color:'var(--text3)'}}>/ ideal 6-8h</span></div>
+            <div>📱 Avg Phone: <strong style={{color:'var(--red)'}}>{ra.phone_usage||'–'}h</strong> <span style={{fontSize:11,color:'var(--text3)'}}>/ ideal &lt;3h</span></div>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title">📊 Routine Bars</div>
+          <BarChart
+            data={[Number(ra.work_hours)||0,Number(ra.sleep_hours)||0,Number(ra.phone_usage)||0,Number(ra.ready_time)||0]}
+            labels={['Work(h)','Sleep(h)','Phone(h)','Ready(m)']}
+            colors={['#7c6ef5','#e879a0','#f06060','#38c5c5']}
+            height={200}
+          />
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">📈 14-Day Routine Trends</div>
+        <div className="leg-row" style={{marginBottom:12}}>
+          {[['Sleep (h)','#e879a0'],['Work (h)','#7c6ef5'],['Phone (h)','#f06060']].map(([l,c])=>(
+            <div key={l} className="leg-item"><span className="dot" style={{background:c}}/>{l}</div>
+          ))}
+        </div>
+        <LineChart datasets={datasets} labels={labels} height={220}/>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════════════════════
+function App(){
+  const [page,setPage]=useState('dashboard');
+  const [toast,setToast]=useState(null);
+  const [health,setHealth]=useState(null);
+  const [seeding,setSeeding]=useState(false);
+
+  useEffect(()=>{
+    API.get('/api/health').then(r=>{ if(r.status)setHealth(r); }).catch(()=>{});
+  },[]);
+
+  const showToast=(msg,err=false)=>{setToast({msg,err});setTimeout(()=>setToast(null),3500);};
+
+  const handleSeed=async()=>{
+    if(!window.confirm('This will replace ALL entries with 30 days of sample data. Continue?'))return;
+    setSeeding(true);
+    const r=await API.post('/api/seed',{});
+    showToast(r.success?r.message:'Seed failed',!r.success);
+    setSeeding(false);
+    if(r.success)setPage('dashboard');
+  };
+
+  const nav=[
+    {id:'dashboard',icon:'🏠',label:'Dashboard'},
+    {id:'log',icon:'✏️',label:'Log Entry'},
+    {id:'analytics',icon:'📊',label:'Analytics'},
+    {id:'food',icon:'🥗',label:'Food Tracker'},
+    {id:'routine',icon:'⏰',label:'Routine'},
+    {id:'history',icon:'🗂️',label:'History'},
+  ];
+
+  return(
+    <div className="app">
+      <nav className="sidebar">
+        <div className="sb-logo">
+          <div className="logo-mark">KUTTY</div>
+          <div className="logo-sub">Personal Life Tracker</div>
+        </div>
+        <div className="sb-nav">
+          <div className="nav-sec">Navigation</div>
+          {nav.map(n=>(
+            <button key={n.id} className={`nav-item ${page===n.id?'active':''}`} onClick={()=>setPage(n.id)}>
+              <span className="nav-icon">{n.icon}</span>{n.label}
+            </button>
+          ))}
+          <div className="nav-sec" style={{marginTop:12}}>Data</div>
+          <button className="nav-item" onClick={()=>API.download('/api/export/csv')}>
+            <span className="nav-icon">⬇️</span>Export CSV
+          </button>
+          <button className={`nav-item ${seeding?'':''}` } onClick={handleSeed} disabled={seeding}>
+            <span className="nav-icon">🌱</span>{seeding?'Seeding…':'Load Sample Data'}
+          </button>
+        </div>
+        <div className="sb-footer">
+          <DBStatus status={health}/>
+          <div style={{fontSize:11,color:'var(--text3)'}}>
+            {health?.db_type==='MongoDB'?'Connected to MongoDB Atlas':'Using in-memory store'}
+          </div>
+        </div>
+      </nav>
+
+      <main className="main">
+        {page==='dashboard'&&<Dashboard onNav={setPage}/>}
+        {page==='log'&&<LogEntry onToast={showToast}/>}
+        {page==='analytics'&&<Analytics/>}
+        {page==='food'&&<FoodTracker/>}
+        {page==='routine'&&<RoutinePage/>}
+        {page==='history'&&<History onToast={showToast}/>}
+      </main>
+
+      {toast&&<Toast msg={toast.msg} err={toast.err} onHide={()=>setToast(null)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
