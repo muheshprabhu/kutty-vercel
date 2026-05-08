@@ -1032,9 +1032,9 @@ function App(){
           <button className="nav-item" onClick={()=>API.download('/api/export/csv')}>
             <span className="nav-icon">⬇️</span>Export CSV
           </button>
-          <button className={`nav-item ${seeding?'':''}` } onClick={handleSeed} disabled={seeding}>
-            <span className="nav-icon">🌱</span>{seeding?'Seeding…':'Load Sample Data'}
-          </button>
+          #<button className={`nav-item ${seeding?'':''}` } onClick={handleSeed} disabled={seeding}>
+          #  <span className="nav-icon">🌱</span>{seeding?'Seeding…':'Load Sample Data'}
+          #</button>
         </div>
         <div className="sb-footer">
           <DBStatus status={health}/>
